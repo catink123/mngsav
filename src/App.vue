@@ -33,9 +33,26 @@
           <v-card-title v-if="editing">Edit an item</v-card-title>
           <v-card-title v-else>Add an item</v-card-title>
           <v-card-text>
-            <v-container>
+            <v-container class="mt-2 pa-0">
               <v-text-field outlined label="Title" required v-model="title" />
-              <v-text-field outlined label="Chapter" type="number" required v-model="chapter" />
+              <v-row>
+                <v-text-field
+                  class="mx-3"
+                  outlined
+                  label="Volume"
+                  type="number"
+                  required
+                  v-model="volume"
+                />
+                <v-text-field
+                  class="mx-3"
+                  outlined
+                  label="Chapter"
+                  type="number"
+                  required
+                  v-model="chapter"
+                />
+              </v-row>
               <v-text-field outlined label="Link" required v-model="link" />
               <v-checkbox v-if="editing" v-model="editImage" checked label="Change Image" />
               <v-file-input
@@ -58,27 +75,31 @@
     </v-app-bar>
 
     <v-main>
-      <v-container class="d-flex flex-wrap justify-center">
-        <p v-if="this.$store.state.cards.length === 0">You have no mangas added. Add one with the + button in the toolbar.</p>
+      <v-container class="d-flex flex-wrap justify-center" fluid>
+        <p
+          v-if="this.$store.state.cards.length === 0"
+        >You have no mangas added. Add one with the + button in the toolbar.</p>
         <v-card
           class="ma-2"
           v-for="card in this.$store.state.cards"
           v-bind:key="card.id"
           width="300px"
         >
-          <v-card-title>{{ card.title }}</v-card-title>
-          <v-card-text class="pa-0">
-            <v-container class="pa-0">
-              <v-container class="px-4 pt-0">Chapter: {{ card.chapter }}</v-container>
+          <v-img
+            gradient="to bottom, rgba(0, 0, 0, .5) 0%, rgba(0, 0, 0, .1) 30%, rgba(0, 0, 0, 0)"
+            :src="card.image"
+            height="450px"
+            cover
+          >
+            <v-card-title>{{ card.title }}</v-card-title>
+            <v-card-text>Position: {{ card.volume }} - {{ card.chapter }}</v-card-text>
+          </v-img>
 
-              <v-img :src="card.image" height="400px" />
-            </v-container>
-          </v-card-text>
           <v-card-actions>
-            <v-btn icon @click="changeChapByOne(card.id, true)">
+            <v-btn icon @click="changeByOne(card.id, true, false)">
               <v-icon>mdi-plus</v-icon>
             </v-btn>
-            <v-btn icon @click="changeChapByOne(card.id, false)">
+            <v-btn icon @click="changeByOne(card.id, false, false)">
               <v-icon>mdi-minus</v-icon>
             </v-btn>
             <v-menu>
@@ -100,6 +121,18 @@
                     <v-icon>mdi-delete</v-icon>
                   </v-list-item-icon>
                   <v-list-item-title>Delete</v-list-item-title>
+                </v-list-item>
+                <v-list-item @click="changeByOne(card.id, true, true)">
+                  <v-list-item-icon>
+                    <v-icon>mdi-book-plus</v-icon>
+                  </v-list-item-icon>
+                  <v-list-item-title>+1 to volume</v-list-item-title>
+                </v-list-item>
+                <v-list-item @click="changeByOne(card.id, false, true)">
+                  <v-list-item-icon>
+                    <v-icon>mdi-book-minus</v-icon>
+                  </v-list-item-icon>
+                  <v-list-item-title>-1 from volume</v-list-item-title>
                 </v-list-item>
               </v-list>
             </v-menu>
@@ -129,6 +162,7 @@ export default {
     editImage: true,
     editingId: null,
     title: "",
+    volume: null,
     chapter: null,
     link: "",
     imageInput: null,
@@ -149,6 +183,7 @@ export default {
         // Set new card data
         newData = {
           title: this.title,
+          volume: parseInt(this.volume),
           chapter: parseInt(this.chapter),
           link: this.link,
         };
@@ -157,6 +192,7 @@ export default {
         newData = {
           ...this.$store.state.cards[this.editingId],
           title: this.title,
+          volume: parseInt(this.volume),
           chapter: parseInt(this.chapter),
           link: this.link,
         };
@@ -187,6 +223,7 @@ export default {
             this.editingId = null;
             // Set everything back to default
             this.title = "";
+            this.volume = null;
             this.chapter = null;
             this.link = "";
             this.imageInput = null;
@@ -208,10 +245,11 @@ export default {
         this.editingId = null;
         // Set everything back to default
         this.title = "";
+        this.volume = null;
         this.chapter = null;
         this.link = "";
         this.imageInput = null;
-      } 
+      }
     },
 
     cancelClick() {
@@ -220,18 +258,26 @@ export default {
       this.editImage = true;
       this.editingId = null;
       this.title = "";
+      this.volume = null;
       this.chapter = null;
       this.link = "";
       this.imageInput = null;
     },
 
-    changeChapByOne(id, positiveDirection) {
+    changeByOne(id, positiveDirection, changeVolume) {
       var amount = -1;
       if (positiveDirection) amount = 1;
 
-      var newData = {
-        chapter: this.$store.state.cards[id].chapter + amount,
-      };
+      var newData;
+
+      if (!changeVolume)
+        newData = {
+          chapter: this.$store.state.cards[id].chapter + amount,
+        };
+      else
+        newData = {
+          volume: this.$store.state.cards[id].volume + amount,
+        };
 
       this.$store.commit("editCard", {
         id: id,
@@ -244,6 +290,7 @@ export default {
       this.editImage = false;
       this.editing = true;
       this.title = this.$store.state.cards[id].title;
+      this.volume = this.$store.state.cards[id].volume;
       this.chapter = this.$store.state.cards[id].chapter;
       this.link = this.$store.state.cards[id].link;
       this.dialog = true;
