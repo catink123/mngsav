@@ -1,4 +1,9 @@
-# mngsav
+# Manga Saver
+It's as simple as that.
+
+Go [here](https://catink123.github.io/mngsav) to see the app running.
+
+# Default project scripts
 
 ## Project setup
 ```
