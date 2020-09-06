@@ -11,6 +11,7 @@ const store = new Vuex.Store({
   },
   mutations: {
     addCard(state, data) {
+      // Add card with the new id defined by card Array's length
       state.cards.push({
         id: state.cards.length,
         ...data
@@ -18,6 +19,7 @@ const store = new Vuex.Store({
     },
 
     editCard(state, payload) {
+      // Remove old data and fill the space with new data
       state.cards.splice(payload.id, 1, {
         ...state.cards[payload.id],
         ...payload.newData
@@ -41,7 +43,12 @@ const store = new Vuex.Store({
     loadData(state) {
       var loadedData = JSON.parse(localStorage.getItem("cards"));
       
+      // If loadedData is null, then we don't have saved data or this is a first start
       if (loadedData !== null) state.cards = loadedData;
+    },
+
+    loadDataFromObject(state, data) {
+      state.cards = data;
     }
   }
 })

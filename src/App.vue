@@ -5,24 +5,6 @@
 
       <v-spacer></v-spacer>
 
-      <v-tooltip bottom :open-delay="500">
-        <template v-slot:activator="{on, attrs}">
-          <v-btn icon @click="saveData" v-on="on" v-bind="attrs">
-            <v-icon>mdi-download</v-icon>
-          </v-btn>
-        </template>
-        <span>Save</span>
-      </v-tooltip>
-
-      <v-tooltip bottom :open-delay="500">
-        <template v-slot:activator="{on, attrs}">
-          <v-btn icon @click="loadData" v-on="on" v-bind="attrs">
-            <v-icon>mdi-upload</v-icon>
-          </v-btn>
-        </template>
-        <span>Load</span>
-      </v-tooltip>
-
       <v-dialog v-model="dialog" persistent max-width="600px">
         <template v-slot:activator="{ on, attrs }">
           <v-btn v-on="on" v-bind="attrs" icon>
@@ -72,6 +54,36 @@
           </v-card-actions>
         </v-card>
       </v-dialog>
+
+      <v-menu>
+              <template v-slot:activator="{ on, attrs }">
+                <v-btn icon v-on="on" v-bind="attrs">
+                  <v-icon>mdi-dots-vertical</v-icon>
+                </v-btn>
+              </template>
+
+              <v-list dense>
+                <v-list-item @click="saveData">
+                  <v-list-item-icon><v-icon>mdi-download</v-icon></v-list-item-icon>
+                  <v-list-item-title>Save data</v-list-item-title>
+                </v-list-item>
+
+                <v-list-item @click="loadData">
+                  <v-list-item-icon><v-icon>mdi-upload</v-icon></v-list-item-icon>
+                  <v-list-item-title>Load data</v-list-item-title>
+                </v-list-item>
+
+                <v-list-item @click="saveDataToFile">
+                  <v-list-item-icon><v-icon>mdi-file-download</v-icon></v-list-item-icon>
+                  <v-list-item-title>Save data to file</v-list-item-title>
+                </v-list-item>
+
+                <v-list-item @click="loadDataFromFile">
+                  <v-list-item-icon><v-icon>mdi-file-upload</v-icon></v-list-item-icon>
+                  <v-list-item-title>Load data from file</v-list-item-title>
+                </v-list-item>
+              </v-list>
+      </v-menu>
     </v-app-bar>
 
     <v-main>
@@ -146,6 +158,11 @@
 </template>
 
 <script>
+// For loading and saving data from and to a file
+const fileDialog = require("file-dialog");
+const FileSaver = require("file-saver");
+
+// For compressing an image when importing
 const Compress = require("client-compress");
 const compress = new Compress({
   targetSize: 0.2,
@@ -252,6 +269,7 @@ export default {
       }
     },
 
+    // Set everything to default when 'Cancel' button is clicked in the dialog
     cancelClick() {
       this.dialog = false;
       this.editing = false;
@@ -264,6 +282,7 @@ export default {
       this.imageInput = null;
     },
 
+    // Change volume or chapter by one (for + and - buttons)
     changeByOne(id, positiveDirection, changeVolume) {
       var amount = -1;
       if (positiveDirection) amount = 1;
@@ -279,6 +298,7 @@ export default {
           volume: this.$store.state.cards[id].volume + amount,
         };
 
+      // Send newData to the store for it to change the values
       this.$store.commit("editCard", {
         id: id,
         newData: newData,
@@ -286,7 +306,10 @@ export default {
     },
 
     editCard(id) {
+      // Set the editingId to the card id where the 'Edit' button was clicked
       this.editingId = id;
+
+      // Fill the dialog inputs with data from a card with set id
       this.editImage = false;
       this.editing = true;
       this.title = this.$store.state.cards[id].title;
@@ -307,6 +330,23 @@ export default {
     loadData() {
       this.$store.commit("loadData");
     },
+
+    saveDataToFile() {
+      // Convert the cards object in the store to JSON string and save (download) it
+      var savefile = new File([JSON.stringify(this.$store.state.cards)], "MangaSaver_DataFile.json", {type: 'text/plain;charset=utf-8'});
+      FileSaver.saveAs(savefile);
+    },
+
+    loadDataFromFile() {
+      // Open a file dialog to choose a data file
+      fileDialog()
+        .then(file => {
+          // Parse JSON data and send to the store
+          file[0].text().then(text => {
+            this.$store.commit("loadDataFromObject", JSON.parse(text));
+          })
+        })
+    }
   },
 };
 </script>

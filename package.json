@@ -6,11 +6,14 @@
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
     "lint": "vue-cli-service lint",
-    "deploy": "rm -rf dist && npm run build && cd dist && git init && git add . && git commit -m \"Initial commit\" && git remote add origin git@github.com:Bloomca/equalizer.git && git push --force origin master:gh-pages"
+    "deploy": "gh-pages -d dist"
   },
   "dependencies": {
     "client-compress": "^2.2.2",
     "core-js": "^3.6.5",
+    "file-dialog": "0.0.8",
+    "file-saver": "^2.0.2",
+    "gh-pages": "^3.1.0",
     "vue": "^2.6.11",
     "vuetify": "^2.2.11",
     "vuex": "^3.5.1"
