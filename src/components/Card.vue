@@ -66,7 +66,7 @@ export default {
     volume: Number,
     chapter: Number,
     link: String,
-    image: Image
+    image: String
   }
 }
 </script>

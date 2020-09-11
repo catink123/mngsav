@@ -7,48 +7,114 @@ Vue.use(Vuex);
 
 const store = new Vuex.Store({
   state: {
-    cards: []
+    cards: [],
+    data: [
+      {
+        id: 0,
+        name: "Default",
+        cards: []
+      }
+    ]
+  },
+  getters: {
+    sectionList: state => {
+      var returnList = [];
+      for (var i = 0; i < state.data.length; i++) {
+        returnList.push({
+          text: state.data[i].name,
+          value: i
+        });
+      }
+      return returnList
+    }
   },
   mutations: {
-    addCard(state, data) {
-      // Add card with the new id defined by card Array's length
-      state.cards.push({
-        id: state.cards.length,
-        ...data
+    addCard(state, payload) {
+      // Add a card with the new id defined by card Array's length
+      state.data[payload.section].cards.push({
+        id: state.data[payload.section].cards.length,
+        ...payload.data
       })
     },
 
     editCard(state, payload) {
       // Remove old data and fill the space with new data
-      state.cards.splice(payload.id, 1, {
-        ...state.cards[payload.id],
-        ...payload.newData
-      })
+      if (payload.changeSection) {
+        state.data[payload.section].cards.push({
+          ...state.data[payload.currentSection].cards[payload.id],
+          id: state.data[payload.section].cards.length,
+          ...payload.newData
+        });
+        state.data[payload.currentSection].cards.splice(payload.id, 1);
+      } else {
+        state.data[payload.section].cards.splice(payload.id, 1, {
+          ...state.data[payload.section].cards[payload.id],
+          ...payload.newData
+        })
+      }
     },
 
-    removeCard(state, id) {
-      state.cards.splice(id, 1);
+    removeCard(state, payload) {
+      state.data[payload.section].cards.splice(payload.id, 1);
 
-      // Fix ids of cards
+      // Fix IDs of cards
       var i;
-      for (i in state.cards) {
-        state.cards[i].id = i;
+      for (i in state.data[payload.section].cards) {
+        state.data[payload.section].cards[i].id = i;
+      }
+    },
+
+    addSection(state, name) {
+      // Add a Section with the new id defined by card Array's length
+      state.data.push({
+        id: state.data.length,
+        name: name,
+        cards: []
+      });
+    },
+
+    editSection(state, payload) {
+      // Remove old data and fill the space with new data
+      state.data.splice(payload.id, 1, {
+        ...state.data[payload.id],
+        name: payload.newName
+      });
+    },
+
+    removeSection(state, id) {
+      state.data.splice(id, 1)
+
+      // Fix IDs of sections
+      var i;
+      for (i in state.data) {
+        state.data[i].id = i;
       }
     },
 
     saveData(state) {
-      localStorage.setItem("cards", JSON.stringify(state.cards))
+      localStorage.setItem("data", JSON.stringify(state.data))
     },
 
     loadData(state) {
-      var loadedData = JSON.parse(localStorage.getItem("cards"));
+      var potentialOldData = JSON.parse(localStorage.getItem("cards"));
+      var loadedData = JSON.parse(localStorage.getItem("data"));
       
+      if (potentialOldData !== null && loadedData === null) {
+        state.data = [
+          {
+            id: 0,
+            name: "Default",
+            cards: potentialOldData
+          }
+        ]
+        localStorage.removeItem("cards")
+      } 
       // If loadedData is null, then we don't have saved data or this is a first start
-      if (loadedData !== null) state.cards = loadedData;
+      if (loadedData !== null) state.data = loadedData;
     },
 
     loadDataFromObject(state, data) {
-      state.cards = data;
+      state.data = data;
     }
   }
 })
