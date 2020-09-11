@@ -91,6 +91,7 @@
         </template>
 
         <v-list dense>
+
           <v-list-item @click="sectionDialog = true">
             <v-list-item-icon>
               <v-icon>mdi-plus</v-icon>
@@ -139,6 +140,14 @@
             </v-list-item-icon>
             <v-list-item-title>Load data from file</v-list-item-title>
           </v-list-item>
+
+          <v-list-item @click="debugClick">
+            <v-list-item-icon>
+              <v-icon>mdi-bug</v-icon>
+            </v-list-item-icon>
+            <v-list-item-title>Fix IDs (if something broke)</v-list-item-title>
+          </v-list-item>
+
         </v-list>
       </v-menu>
     </v-app-bar>
@@ -481,6 +490,10 @@ export default {
         });
       });
     },
+
+    debugClick() {
+      this.$store.commit("fixIDs")
+    }
   },
 };
 </script>

@@ -52,6 +52,14 @@ const store = new Vuex.Store({
           ...payload.newData
         })
       }
+
+      // Fix IDs
+      for (var x in state.data) {
+        state.data[x].id = x;
+        for (var y in state.data[x].cards) {
+          state.data[x].cards[y].id = y;
+        }
+      }
     },
 
     removeCard(state, payload) {
@@ -115,6 +123,15 @@ const store = new Vuex.Store({
 
     loadDataFromObject(state, data) {
       state.data = data;
+    },
+
+    fixIDs(state) {
+      for (var x in state.data) {
+        state.data[x].id = x;
+        for (var y in state.data[x].cards) {
+          state.data[x].cards[y].id = y;
+        }
+      }
     }
   }
 })
