@@ -87,6 +87,12 @@ const store = new Vuex.Store({
         ...state.data[payload.id],
         name: payload.newName
       });
+
+      // Fix IDs of sections
+      var i;
+      for (i in state.data) {
+        state.data[i].id = i;
+      }
     },
 
     removeSection(state, id) {
