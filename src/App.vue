@@ -153,7 +153,7 @@
     </v-app-bar>
 
     <v-main>
-      <v-tabs color="amber darken-4" v-model="currentSection" centered>
+      <v-tabs color="amber darken-4" v-model="currentSection" centered :vertical="tabOrientation">
         <v-tab v-for="section in this.$store.state.data" v-bind:key="section.id">{{ section.name }}</v-tab>
 
         <v-tabs-items v-model="currentSection">
@@ -232,13 +232,8 @@ import { mapGetters } from "vuex";
 const fileDialog = require("file-dialog");
 const FileSaver = require("file-saver");
 
-// For compressing an image when importing
-const Compress = require("client-compress");
-const compress = new Compress({
-  targetSize: 0.2,
-  maxWidth: 500,
-  maxHeight: 800,
-});
+const Compress = require("compress.js");
+const compress = new Compress();
 
 export default {
   name: "App",
@@ -283,6 +278,13 @@ export default {
         case 'xs': return "to bottom, rgba(0, 0, 0, .5) 0%, rgba(0, 0, 0, .1) 40%, rgba(0, 0, 0, 0)"
         default: return "to bottom, rgba(0, 0, 0, .5) 0%, rgba(0, 0, 0, .1) 30%, rgba(0, 0, 0, 0)"
       }
+    },
+
+    tabOrientation() {
+      switch (this.$vuetify.breakpoint.name) {
+        case 'xs': return null
+        default: return true
+      }
     }
   },
 
@@ -292,7 +294,7 @@ export default {
       this.dialog = false;
 
       // Initialize a FileReader for reading the image Blob
-      var fr = new FileReader();
+      // var fr = new FileReader();
 
       var newData = {};
 
@@ -320,11 +322,15 @@ export default {
 
       // Compress input image from dialog
       if (this.editImage) {
-        compress.compress([this.imageInput]).then((c) => {
-          // Reading the compressed image Blob as DataURL
-          fr.onloadend = () => {
+
+        compress.compress([this.imageInput], {
+          size: .1,
+          quality: .75,
+          maxWidth: 500,
+          maxHeight: 500
+        }).then((c) => {
             // If "Edit Image" is checked, then set the image in the edited data
-            newData.image = fr.result;
+            newData.image = c[0].prefix + c[0].data;
 
             payload.data = newData;
             payload.section = this.section;
@@ -340,12 +346,9 @@ export default {
             } else {
               // Push new card data to the database
               this.$store.commit("addCard", payload);
-              console.log(payload);
             }
 
             this.setDefaults();
-          };
-          fr.readAsDataURL(c[0].photo.data);
         });
       } else {
         if (this.editing) {
