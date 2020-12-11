@@ -2,33 +2,23 @@ import Vue from 'vue'
 import App from './App.vue'
 import vuetify from './plugins/vuetify';
 import Vuex from 'vuex';
+/* import './registerServiceWorker' */
+import wb from "./registerServiceWorker";
+
+Vue.prototype.$workbox = wb;
 
 let db;
 
-/* function getItems(callback) {
-  var items = [], itemStore = db.transaction("items", "readonly").objectStore("items");
-  itemStore.openCursor().onsuccess = e => {
-    var cursor = e.target.result;
-    if (cursor) {
-      items.push(cursor.value);
-      cursor.continue();
-    } else {
-      callback(items);
-    }
-  }
-}
-
-function addItem(itemData, imageData) {
-  db.transaction("items", "readwrite").objectStore("items").put(itemData);
-  db.transaction("images", "readwrite").objectStore("images").put(imageData);
-}
-
-function removeItem(itemKey) {
-  db.transaction("images", "readwrite").objectStore("items").remove(itemKey);
-  db.transaction("images", "readwrite").objectStore("images").remove(itemKey);
-} */
-
 Vue.use(Vuex);
+
+/* function remakeObjectStores(db) {
+  db.deleteObjectStore("sections");
+  db.deleteObjectStore("items");
+  db.deleteObjectStore("images");
+  db.createObjectStore("sections", { keyPath: "key", autoIncrement: true });
+  db.createObjectStore("items", { keyPath: "key", autoIncrement: true });
+  db.createObjectStore("images", { keyPath: "key", autoIncrement: true });
+} */
 
 const store = new Vuex.Store({
   state: {
@@ -39,10 +29,29 @@ const store = new Vuex.Store({
         name: "Default",
         cards: []
       }
-    ]
+    ],
+    loading: true
   },
   getters: {
-    sectionList: state => {
+    favourited: state => {
+      var returnObject = {
+        id: -1,
+        name: "Favourited",
+        cards: []
+      };
+      for (var i in state.data) {
+        returnObject.cards = returnObject.cards.concat(state.data[i].cards.filter((card) => card.favourited));
+      }
+      return returnObject
+    },
+    sections: (state/* , getters */) => {
+      var returnList = [];
+      // returnList = [getters.favourited].concat(state.data);
+      returnList = state.data;
+      return returnList;
+    },
+    // A list of sections for the Section select in Add/Edit Card dialog
+    sectionSelect: (state) => {
       var returnList = [];
       for (var i = 0; i < state.data.length; i++) {
         returnList.push({
@@ -51,6 +60,9 @@ const store = new Vuex.Store({
         });
       }
       return returnList
+    },
+    loading: state => {
+      return state.loading
     }
   },
   mutations: {
@@ -131,6 +143,7 @@ const store = new Vuex.Store({
     },
 
     saveData(state) {
+      /* remakeObjectStores(db); */
       // localStorage.setItem("data", JSON.stringify(state.data))
       var sectionStore = db.transaction("sections", "readwrite").objectStore("sections");
       var itemStore = db.transaction("items", "readwrite").objectStore("items");
@@ -183,52 +196,35 @@ const store = new Vuex.Store({
         itemStore.createIndex("volume", "volume", { unique: false });
         itemStore.createIndex("chapter", "chapter", { unique: false });
         itemStore.createIndex("link", "link", { unique: false });
+        itemStore.createIndex("favourited", "favourited", { unique: false })
 
         var imageStore = db.createObjectStore("images", { keyPath: "key", autoIncrement: true });
         imageStore.createIndex("data", "data", { unique: false });
       };
 
       req.onsuccess = e => {
-        db = e.target.result;
-        console.log("\n");
+        // If there's old data, set state.data to it and clear localStorage, as we are using indexedDB from now on.
+        var potentialOldData = JSON.parse(localStorage.getItem("cards"));
+        if (potentialOldData !== null) {
+          state.data = potentialOldData;
+          localStorage.clear();
+        } else {
+          db = e.target.result;
 
-        /* var potentialOldData = JSON.parse(localStorage.getItem("cards"));
-        // var loadedData = JSON.parse(localStorage.getItem("data"));
-        
-        if (potentialOldData !== null && loadedData === null) {
-          state.data = [
-            {
-              id: 0,
-              name: "Default",
-              cards: potentialOldData
-            }
-          ]
-          localStorage.removeItem("cards")
-        } 
-        // If loadedData is null, then we don't have saved data or this is a first start
-        if (loadedData !== null) state.data = loadedData; */
-        var data = [];
-        var sectionStore = db.transaction("sections").objectStore("sections");
-        
-        sectionStore.openCursor().onsuccess = e => {
-          var cursor = e.target.result;
-          if (cursor) {
-            data.push({
-              id: data.length,
-              name: cursor.value.name,
-              cards: []
-            });
-            console.log("Section: ")
-            console.log(cursor.value);
-            cursor.continue();
-          } else {
-            // Loop through sections and add the correct items
-            for (var i in data) {
-              // Get item data for that section by querying with it's name
+          var data = [];
+          var sectionStore = db.transaction("sections").objectStore("sections");
+
+          // Add sections and add the correct items to them
+          sectionStore.openCursor().onsuccess = e => {
+            var cursor = e.target.result;
+            if (cursor) {
+              var cards = [];
+
+              var sectionName = cursor.value.name;
+
               var itemStore = db.transaction("items").objectStore("items");
-              itemStore.index("section").openCursor(data[i].name).onsuccess = e => {
+              itemStore.index("section").openCursor(sectionName).onsuccess = e => {
                 var itemCursor = e.target.result;
-                console.log(itemCursor);
                 if (itemCursor) {
                   // Get image with item's key
                   var imageStore = db.transaction("images").objectStore("images");
@@ -237,25 +233,61 @@ const store = new Vuex.Store({
                     if (imageCursor) {
                       // Compose an object with item data and image that we got
                       var card = {
-                        id: data[i].cards.length,
+                        id: cards.length,
                         ...itemCursor.value,
                         image: imageCursor.value.data
                       }
                       delete card.key;
-                      delete card.section;
-                      data[i].cards.push(card);
-                      console.log("Card: ")
-                      console.log(card);
+                      // delete card.section;
+                      cards.push(card);
                     }
                   }
                   itemCursor.continue();
                 } else {
-                  // We're done! Set state.data to our composed data object
-                  state.data = data;
-                  console.log("Data to load: \n")
-                  console.log(data);
+                  // Push the new section object to data array
+                  data.push({
+                    id: parseInt(data.length),
+                    name: sectionName,
+                    cards: cards
+                  });
+                  data.sort((a, b) => {
+                    // (a.name > b.name) ? 1 : ((b.name > a.name) ? -1 : 0))
+                    if (a.name.toUpperCase() > b.name.toUpperCase()) {
+                      return 1
+                    } else if (b.name.toUpperCase() > a.name.toUpperCase()) {
+                      return -1
+                    } else {
+                      return 0
+                    }
+                  });
                 }
               }
+              cursor.continue();
+            } else {
+              // We're done! Set state.data to our composed data object
+              if (data.length !== 0) {
+                /* data.sort((a, b) => {
+                  // (a.name > b.name) ? 1 : ((b.name > a.name) ? -1 : 0))
+                  if (a.name.toUpperCase() > b.name.toUpperCase()) {
+                    return 1
+                  } else if (b.name.toUpperCase() > a.name.toUpperCase()) {
+                    return -1
+                  } else {
+                    return 0
+                  }
+                }); */
+                state.data = data;
+                for (var i in state.data) {
+                  state.data[i].id = parseInt(i);
+                }
+              } else {
+                state.data = [{
+                  id: 0,
+                  name: "Default",
+                  cards: []
+                }]
+              }
+              state.loading = false;
             }
           }
         }
@@ -287,7 +319,10 @@ new Vue({
     store.commit("loadData");
 
     window.addEventListener("beforeunload", () => {
-      store.commit("saveData");
+      this.$workbox.messageSW({
+        type: 'saveDB',
+        data: store.state
+      });
       db.close();
     });
   }
