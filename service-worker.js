@@ -1,4 +1,4 @@
-importScripts("/mngsav/precache-manifest.44575808048c6025f505033d13f6fa4b.js", "https://storage.googleapis.com/workbox-cdn/releases/4.3.1/workbox-sw.js");
+importScripts("/mngsav/precache-manifest.f1dc24eb7d07b87585f56d728ab4dfa6.js", "https://storage.googleapis.com/workbox-cdn/releases/4.3.1/workbox-sw.js");
 
 importScripts("https://storage.googleapis.com/workbox-cdn/releases/4.3.1/workbox-sw.js");
 
