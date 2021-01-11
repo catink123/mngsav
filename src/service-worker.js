@@ -1,6 +1,4 @@
-import localforage from 'localforage';
-
-importScripts("https://storage.googleapis.com/workbox-cdn/releases/4.3.1/workbox-sw.js");
+importScripts("https://storage.googleapis.com/workbox-cdn/releases/4.3.1/workbox-sw.js", "https://cdnjs.cloudflare.com/ajax/libs/localforage/1.9.0/localforage.min.js");
 
 workbox.core.setCacheNameDetails({prefix: "mngsav"});
 
