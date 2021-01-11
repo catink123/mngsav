@@ -1,13 +1,21 @@
-importScripts("/mngsav/precache-manifest.233a7e986a184860bf0058fda476b869.js", "https://storage.googleapis.com/workbox-cdn/releases/4.3.1/workbox-sw.js");
+importScripts("/mngsav/precache-manifest.02e78d470583ae56025543fad3417cac.js", "https://storage.googleapis.com/workbox-cdn/releases/4.3.1/workbox-sw.js");
 
 importScripts("https://storage.googleapis.com/workbox-cdn/releases/4.3.1/workbox-sw.js", "https://cdnjs.cloudflare.com/ajax/libs/localforage/1.9.0/localforage.min.js");
+
+localforage.config({
+  driver: localforage.INDEXEDDB,
+  name: "mngsav"
+});
 
 workbox.core.setCacheNameDetails({prefix: "mngsav"});
 
 self.addEventListener('message', (event) => {
   if (event.data && event.data.type === 'saveDB') {
     // Save the data to the indexedDB
-    localforage.setItem("data", event.data.data.data);
+    localforage.clear((err) => {
+      if (err) console.error(err);
+      localforage.setItem("data", state.data);
+    });
   }
   if (event.data && event.data.type === 'SKIP_WAITING') {
     self.skipWaiting();
