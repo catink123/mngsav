@@ -141,7 +141,10 @@ const store = new Vuex.Store({
 
     saveData(state) {
       // Save the data to the indexedDB
-      localforage.setItem("data", state.data);
+      localforage.clear((err) => {
+        if (err) console.error(err);
+        localforage.setItem("data", state.data);
+      });
     },
 
     loadData(state) {
@@ -191,7 +194,7 @@ new Vue({
     window.addEventListener("beforeunload", () => {
       this.$workbox.messageSW({
         type: "saveDB",
-        data: store.state,
+        appData: store.state.data,
       });
       db.close();
     });
