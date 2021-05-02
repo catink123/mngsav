@@ -1,4 +1,4 @@
-importScripts("/mngsav/precache-manifest.72485795f467a8f2a632ae7a60fe3b26.js", "https://storage.googleapis.com/workbox-cdn/releases/4.3.1/workbox-sw.js");
+importScripts("/mngsav/precache-manifest.872b96997e1195f964cae9d310fd57d4.js", "https://storage.googleapis.com/workbox-cdn/releases/4.3.1/workbox-sw.js");
 
 importScripts("https://storage.googleapis.com/workbox-cdn/releases/4.3.1/workbox-sw.js", "https://cdnjs.cloudflare.com/ajax/libs/localforage/1.9.0/localforage.min.js");
 
