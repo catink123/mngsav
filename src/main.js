@@ -35,16 +35,21 @@ const store = new Vuex.Store({
         cards: [],
       };
       for (var i in state.data) {
+        var filtered = state.data[i].cards.filter((card) => card.favourited);
+        for (var x in filtered) {
+          filtered[x].section = state.data[i].name;
+        }
         returnObject.cards = returnObject.cards.concat(
-          state.data[i].cards.filter((card) => card.favourited)
+          filtered
         );
       }
       return returnObject;
     },
-    sections: (state /* , getters */) => {
+    sections: (state , getters) => {
       var returnList = [];
-      // returnList = [getters.favourited].concat(state.data);
-      returnList = state.data;
+      var fav = getters.favourited;
+      returnList.push(fav);
+      returnList = returnList.concat(state.data);
       return returnList;
     },
     // A list of sections for the Section select in Add/Edit Card dialog

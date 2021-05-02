@@ -223,12 +223,16 @@
         centered
         :vertical="tabOrientation"
         show-arrows
+        center-active
       >
         <v-tab
           v-for="section in this.$store.getters.sections"
           v-bind:key="section.id"
+          class="ma-0"
+          :class="tabOrientation ? 'mw-50' : null"
         >
-          {{ section.name }}
+          <v-icon v-if="section.name === 'Favourited'">mdi-star</v-icon>
+          {{ section.name !== 'Favourited' ? section.name : null }}
         </v-tab>
 
         <v-tabs-items v-model="currentSection">
@@ -572,11 +576,12 @@ export default {
     },
 
     findSectionIDByName(sectionName) {
-      return this.$store.state.data.find((value) => {
+      var sect = this.$store.state.data.find(value => {
         if (value.name == sectionName) {
           return true;
         }
-      }).id;
+      });
+      return sect.id;
     },
   },
 };
@@ -585,5 +590,9 @@ export default {
 <style scoped>
 .nobg {
   background: transparent;
+}
+
+.mw-50 {
+  min-width: 50px;
 }
 </style>

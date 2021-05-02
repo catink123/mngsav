@@ -23,7 +23,7 @@
         <v-icon>mdi-minus</v-icon>
       </v-btn>
       <v-spacer />
-      <!-- <v-btn
+      <v-btn
         icon
         @click.prevent="toggleFavourited(section, id)"
         @mousedown.stop
@@ -31,7 +31,7 @@
       >
         <v-icon v-if="favourited">mdi-star</v-icon>
         <v-icon v-else>mdi-star-outline</v-icon>
-      </v-btn> -->
+      </v-btn>
       <v-menu>
         <template v-slot:activator="{ on, attrs }">
           <v-btn
