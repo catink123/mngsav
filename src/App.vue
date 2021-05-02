@@ -164,14 +164,14 @@
             <v-list-item-title>Add a Section</v-list-item-title>
           </v-list-item>
 
-          <v-list-item @click="editSection(currentSection)">
+          <v-list-item @click="editSection(currentSection - 1)">
             <v-list-item-icon>
               <v-icon>mdi-pencil</v-icon>
             </v-list-item-icon>
             <v-list-item-title>Edit active Section</v-list-item-title>
           </v-list-item>
 
-          <v-list-item @click="removeSection(currentSection)">
+          <v-list-item @click="removeSection(currentSection - 1)">
             <v-list-item-icon>
               <v-icon>mdi-delete</v-icon>
             </v-list-item-icon>
